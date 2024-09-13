@@ -6,7 +6,9 @@ bike_train <- vroom('bike_train.csv') %>%
   mutate(season = as.factor(season),
          weather = as.factor(weather),
          holiday = as.factor(holiday),
-         workingday = as.factor(workingday))
+         workingday = as.factor(workingday)) %>%
+  mutate(time = #??? 
+  )
 
 bike_test <- vroom('bike_test.csv') %>%
   mutate(season = as.factor(season),
@@ -52,15 +54,29 @@ bike_predictions <- predict(linear_model,
                        new_data=bike_test) # Use fit to predict
 
 
+# Poisson Regression ------------------------------------------------------
+
+library(poissonreg)
+pois_model <- poisson_reg() %>%
+  set_engine("glm") %>%
+  set_mode("regression") %>%
+  fit(data = bike_train, formula = count ~ temp + weather + workingday)
+
+bike_predictions_pois <- predict(pois_model,
+                            new_data=bike_test)
+
+bike_predictions_pois
+
+
 # Kaggle Format -----------------------------------------------------------
 
-awful_kaggle_submission <- round(exp(bike_predictions)) %>%
+awful_kaggle_submission_pois <- bike_predictions_pois %>%
   bind_cols(., bike_test) %>%
   select(datetime, .pred) %>%
   rename(count=.pred) %>%
   mutate(count=pmax(0,count)) %>%
   mutate(datetime=as.character(format(datetime)))
 
-vroom_write(awful_kaggle_submission, "awful_kaggle_submission.csv", delim = ",")
+vroom_write(awful_kaggle_submission_pois, "awful_kaggle_submission_pois.csv", delim = ",")
 head(awful_kaggle_submission)
 
