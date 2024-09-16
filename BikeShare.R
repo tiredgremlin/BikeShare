@@ -6,9 +6,7 @@ bike_train <- vroom('bike_train.csv') %>%
   mutate(season = as.factor(season),
          weather = as.factor(weather),
          holiday = as.factor(holiday),
-         workingday = as.factor(workingday)) %>%
-  mutate(time = #??? 
-  )
+         workingday = as.factor(workingday))
 
 bike_test <- vroom('bike_test.csv') %>%
   mutate(season = as.factor(season),
@@ -43,16 +41,16 @@ bike_train2 <- bike_train1 %>%
 # Linear Regression -------------------------------------------------------
 
 
-linear_model <- linear_reg() %>% #Type of model
-  set_engine("lm") %>% # Engine = what R fn to use
-  set_mode("regression") %>% # Regression just means quantitative response (as opposed to classification)
-  fit(formula = log(count) ~ temp + weather + workingday, data = bike_train)
-  
-linear_model$fit
-
-bike_predictions <- predict(linear_model,
-                       new_data=bike_test) # Use fit to predict
-
+# linear_model <- linear_reg() %>% #Type of model
+#   set_engine("lm") %>% # Engine = what R fn to use
+#   set_mode("regression") %>% # Regression just means quantitative response (as opposed to classification)
+#   fit(formula = log(count) ~ temp + weather + workingday, data = bike_train)
+#   
+# linear_model$fit
+# 
+# bike_predictions <- predict(linear_model,
+#                        new_data=bike_test) # Use fit to predict
+# 
 
 # Poisson Regression ------------------------------------------------------
 
@@ -67,16 +65,15 @@ bike_predictions_pois <- predict(pois_model,
 
 bike_predictions_pois
 
-
 # Kaggle Format -----------------------------------------------------------
 
-awful_kaggle_submission_pois <- bike_predictions_pois %>%
+kaggle_submission_workflow <- lin_preds_workflow %>%
   bind_cols(., bike_test) %>%
   select(datetime, .pred) %>%
   rename(count=.pred) %>%
   mutate(count=pmax(0,count)) %>%
   mutate(datetime=as.character(format(datetime)))
 
-vroom_write(awful_kaggle_submission_pois, "awful_kaggle_submission_pois.csv", delim = ",")
-head(awful_kaggle_submission)
+vroom_write(kaggle_submission_workflow, "kaggle_submission_workflow.csv", delim = ",")
+head(kaggle_submission_workflow)
 
