@@ -38,7 +38,6 @@ lin_model_HW6 <- linear_reg() %>%
   set_engine("lm") %>%
   set_mode("regression")
 
-
 ## Combine into workflow and fit
 bike_workflow <- workflow() %>%
   add_recipe(bike_recipe) %>%
